@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -80,4 +82,81 @@ func DecryptRSA(data, priv string) (string, error) {
 		return "", err
 	}
 	return string(decrypted), nil
+}
+
+func GenerateAESKey() string {
+	key := make([]byte, 32)
+
+	_, err := rand.Read(key)
+
+	if err != nil {
+		return ""
+	}
+
+	return base64Encode(key)
+}
+
+func base64Encode(msg []byte) string {
+	return base64.StdEncoding.EncodeToString(msg)
+}
+
+func base64Decode(key string) []byte {
+	secretKey, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		panic(err)
+	}
+
+	return secretKey
+}
+
+func EncryptAES(plaintext string, secretKey string) string {
+	aes, err := aes.NewCipher(base64Decode(secretKey))
+	if err != nil {
+		panic(err)
+	}
+
+	gcm, err := cipher.NewGCM(aes)
+	if err != nil {
+		panic(err)
+	}
+
+	// We need a 12-byte nonce for GCM (modifiable if you use cipher.NewGCMWithNonceSize())
+	// A nonce should always be randomly generated for every encryption.
+	nonce := make([]byte, gcm.NonceSize())
+	_, err = rand.Read(nonce)
+	if err != nil {
+		panic(err)
+	}
+
+	// ciphertext here is actually nonce+ciphertext
+	// So that when we decrypt, just knowing the nonce size
+	// is enough to separate it from the ciphertext.
+	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+
+	return base64Encode(ciphertext)
+}
+
+func DecryptAES(ciphertext string, secretKey string) string {
+	aes, err := aes.NewCipher(base64Decode(secretKey))
+	if err != nil {
+		panic(err)
+	}
+
+	gcm, err := cipher.NewGCM(aes)
+	if err != nil {
+		panic(err)
+	}
+
+	// Since we know the ciphertext is actually nonce+ciphertext
+	// And len(nonce) == NonceSize(). We can separate the two.
+	ciphertextb := base64Decode(ciphertext)
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertextb := ciphertextb[:nonceSize], ciphertextb[nonceSize:]
+
+	plaintext, err := gcm.Open(nil, nonce, ciphertextb, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(plaintext)
 }
