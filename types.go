@@ -10,3 +10,7 @@ type Client struct {
 	PASSWORD string
 	SECRET   string
 }
+
+type ErrorResponse struct {
+	Message interface{} `json:"message"`
+}

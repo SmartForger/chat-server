@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,9 +12,9 @@ func SetupServer() {
 		panic(err)
 	}
 
-	CSet("m_public", publ)
-	CSet("m_private", priv)
-	CSet("m_secret", os.Getenv("CHATSERVER_SECRET"))
+	CSet(CK_PUBLIC, publ)
+	CSet(CK_PRIVATE, priv)
+	CSet(CK_ADMIN_SECRET, GetAdminSecret())
 
 	r := gin.Default()
 
@@ -24,18 +23,7 @@ func SetupServer() {
 	})
 
 	r.GET("/_key", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"key": CGet("m_public")})
-	})
-
-	r.POST("/client", func(c *gin.Context) {
-		var user User
-		if err := c.ShouldBindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		secret := CreateClient(&user)
-		c.JSON(http.StatusCreated, gin.H{"secret": secret})
+		c.JSON(http.StatusOK, gin.H{"key": CGet(CK_PUBLIC)})
 	})
 
 	r.GET("/client/:username", func(c *gin.Context) {
@@ -44,6 +32,8 @@ func SetupServer() {
 
 		c.JSON(http.StatusOK, gin.H{"client": client})
 	})
+
+	AddAdminRoutes(&r.RouterGroup)
 
 	r.Run()
 }
