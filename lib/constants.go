@@ -1,4 +1,4 @@
-package main
+package lib
 
 const ENV_ADMIN_SECRET string = "CHATSERVER_SECRET"
 const HEADER_ADMIN_TOKEN string = "authorization"
