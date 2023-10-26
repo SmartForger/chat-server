@@ -5,10 +5,21 @@ import (
 	"os"
 
 	lib "fullstackdevs14/chat-server/lib"
+
+	"github.com/go-zoox/fetch"
 )
 
 func PrintAdminSecret() {
-	publickey := os.Args[2]
+	serverUrl := lib.GetArg(os.Args, 3)
+	if serverUrl == "" {
+		serverUrl = "http://localhost:8080"
+	}
+
+	response, _ := fetch.Get(serverUrl + "/_key")
+
+	keyJson := response.Value()
+
+	publickey := keyJson.Get("key").String()
 
 	if publickey != "" {
 		secret, err := lib.EncryptRSA(lib.GetAdminSecret(), publickey)
