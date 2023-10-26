@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fullstackdevs14/chat-server/lib"
 	"fullstackdevs14/chat-server/server/common"
 	"net/http"
 
@@ -11,14 +12,17 @@ func AdminApiRoutes(apiGroup *gin.RouterGroup) {
 	clientAdminApiGroup := apiGroup.Group("/client")
 	{
 		clientAdminApiGroup.POST("/", func(c *gin.Context) {
-			var user common.User
-			if err := c.ShouldBindJSON(&user); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			user, ok := common.GetRequestBody[common.User](c)
+
+			if !ok {
+				c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
+					Message: "invalid data",
+				})
 				return
 			}
 
 			secret := CreateClient(&user)
-			c.JSON(http.StatusCreated, gin.H{"secret": secret})
+			c.JSON(http.StatusCreated, lib.EncryptResponse(gin.H{"secret": secret}, c))
 		})
 	}
 }

@@ -109,7 +109,7 @@ func base64Decode(key string) []byte {
 	return secretKey
 }
 
-func EncryptAES(plaintext string, secretKey string) string {
+func EncryptAESByte(bytes []byte, secretKey string) string {
 	aes, err := aes.NewCipher(base64Decode(secretKey))
 	if err != nil {
 		panic(err)
@@ -131,9 +131,13 @@ func EncryptAES(plaintext string, secretKey string) string {
 	// ciphertext here is actually nonce+ciphertext
 	// So that when we decrypt, just knowing the nonce size
 	// is enough to separate it from the ciphertext.
-	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+	ciphertext := gcm.Seal(nonce, nonce, bytes, nil)
 
 	return base64Encode(ciphertext)
+}
+
+func EncryptAES(plaintext string, secretKey string) string {
+	return EncryptAESByte([]byte(plaintext), secretKey)
 }
 
 func DecryptAES(ciphertext string, secretKey string) string {

@@ -8,6 +8,7 @@ import (
 	"fullstackdevs14/chat-server/lib"
 	"fullstackdevs14/chat-server/server/admin"
 	"fullstackdevs14/chat-server/server/client"
+	"fullstackdevs14/chat-server/server/common"
 )
 
 func Setup() {
@@ -30,11 +31,17 @@ func Setup() {
 		c.JSON(http.StatusOK, gin.H{"key": lib.CGet(lib.CK_PUBLIC)})
 	})
 
-	// Admin API Routes
-	admin.AddAdminRoutes(&r.RouterGroup)
+	protectedRoutes := r.Group("/")
+	{
+		protectedRoutes.Use(common.NonceMiddleware)
+		protectedRoutes.Use(common.RequestBodyMiddleware)
 
-	// Client API Routes
-	client.ClientApiRoutes(&r.RouterGroup)
+		// Admin API Routes
+		admin.AddAdminRoutes(protectedRoutes)
+
+		// Client API Routes
+		client.ClientApiRoutes(protectedRoutes)
+	}
 
 	r.Run()
 }

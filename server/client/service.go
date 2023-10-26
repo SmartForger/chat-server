@@ -8,11 +8,11 @@ import (
 )
 
 func CreateClient(user *common.User) string {
-	lib.CSet(fmt.Sprintf("c:%s:u", user.USERNAME), user.USERNAME)
-	lib.CSet(fmt.Sprintf("c:%s:p", user.USERNAME), user.PASSWORD)
+	lib.CSet(fmt.Sprintf("c:%s:u", user.Username), user.Username)
+	lib.CSet(fmt.Sprintf("c:%s:p", user.Username), user.Password)
 
 	secret := lib.GenerateAESKey()
-	lib.CSet(fmt.Sprintf("c:%s:k", user.USERNAME), secret)
+	lib.CSet(fmt.Sprintf("c:%s:k", user.Username), secret)
 
 	return secret
 }
@@ -21,5 +21,5 @@ func GetClient(username string) *common.Client {
 	password := lib.CGet(fmt.Sprintf("c:%s:p", username))
 	secret := lib.CGet(fmt.Sprintf("c:%s:k", username))
 
-	return &common.Client{USERNAME: username, PASSWORD: password, SECRET: secret}
+	return &common.Client{Username: username, Password: password, Secret: secret}
 }
