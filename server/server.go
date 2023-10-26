@@ -1,20 +1,24 @@
-package main
+package server
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"fullstackdevs14/chat-server/lib"
+	"fullstackdevs14/chat-server/server/admin"
+	"fullstackdevs14/chat-server/server/client"
 )
 
-func SetupServer() {
-	publ, priv, err := GenerateKey()
+func Setup() {
+	publ, priv, err := lib.GenerateKey()
 	if err != nil {
 		panic(err)
 	}
 
-	CSet(CK_PUBLIC, publ)
-	CSet(CK_PRIVATE, priv)
-	CSet(CK_ADMIN_SECRET, GetAdminSecret())
+	lib.CSet(lib.CK_PUBLIC, publ)
+	lib.CSet(lib.CK_PRIVATE, priv)
+	lib.CSet(lib.CK_ADMIN_SECRET, lib.GetAdminSecret())
 
 	r := gin.Default()
 
@@ -23,17 +27,17 @@ func SetupServer() {
 	})
 
 	r.GET("/_key", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"key": CGet(CK_PUBLIC)})
+		c.JSON(http.StatusOK, gin.H{"key": lib.CGet(lib.CK_PUBLIC)})
 	})
 
 	r.GET("/client/:username", func(c *gin.Context) {
 		username := c.Param("username")
-		client := GetClient(username)
+		client := client.GetClient(username)
 
 		c.JSON(http.StatusOK, gin.H{"client": client})
 	})
 
-	AddAdminRoutes(&r.RouterGroup)
+	admin.AddAdminRoutes(&r.RouterGroup)
 
 	r.Run()
 }

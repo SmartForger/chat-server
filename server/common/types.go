@@ -1,4 +1,4 @@
-package main
+package common
 
 type User struct {
 	USERNAME string `json:"username" binding:"required"`
