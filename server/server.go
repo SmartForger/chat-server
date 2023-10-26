@@ -30,14 +30,11 @@ func Setup() {
 		c.JSON(http.StatusOK, gin.H{"key": lib.CGet(lib.CK_PUBLIC)})
 	})
 
-	r.GET("/client/:username", func(c *gin.Context) {
-		username := c.Param("username")
-		client := client.GetClient(username)
-
-		c.JSON(http.StatusOK, gin.H{"client": client})
-	})
-
+	// Admin API Routes
 	admin.AddAdminRoutes(&r.RouterGroup)
+
+	// Client API Routes
+	client.ClientApiRoutes(&r.RouterGroup)
 
 	r.Run()
 }
