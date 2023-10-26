@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
 	"fullstackdevs14/chat-server/lib"
@@ -22,6 +23,10 @@ func Setup() {
 	lib.CSet(lib.CK_ADMIN_SECRET, lib.GetAdminSecret())
 
 	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	r.Use(cors.New(config))
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "Hello World")
