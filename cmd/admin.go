@@ -31,3 +31,20 @@ func PrintAdminSecret() {
 	}
 	fmt.Println("Error")
 }
+
+func PrintRSAKeys() {
+	publ, priv, err := lib.GenerateKey()
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(publ)
+	fmt.Println(priv)
+
+	encrypted, _ := lib.EncryptRSA("Hello Test", publ)
+	fmt.Println("Encrypted: " + encrypted)
+
+	decrypted, _ := lib.DecryptRSA(encrypted, priv)
+	fmt.Println("Decrypted: " + decrypted)
+}

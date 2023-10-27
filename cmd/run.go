@@ -11,6 +11,8 @@ func Run() {
 	switch command {
 	case "adminsecret":
 		PrintAdminSecret()
+	case "rsakeys":
+		PrintRSAKeys()
 	default:
 	}
 }
