@@ -26,6 +26,7 @@ func Setup() {
 
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
+	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "sync_nonce", "authorization"}
 	r.Use(cors.New(config))
 
 	r.GET("/", func(c *gin.Context) {
