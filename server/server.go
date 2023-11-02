@@ -40,7 +40,6 @@ func Setup() {
 	protectedRoutes := r.Group("/")
 	{
 		protectedRoutes.Use(common.NonceMiddleware)
-		protectedRoutes.Use(common.RequestBodyMiddleware)
 
 		// Admin API Routes
 		admin.AddAdminRoutes(protectedRoutes)

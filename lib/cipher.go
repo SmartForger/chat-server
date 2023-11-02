@@ -103,14 +103,12 @@ func EncryptAESByte(bytes []byte, secretKey string) string {
 		panic(err)
 	}
 
-	gcm, err := cipher.NewGCM(aes)
+	gcm, err := cipher.NewGCMWithNonceSize(aes, 32)
 	if err != nil {
 		panic(err)
 	}
 
-	// We need a 12-byte nonce for GCM (modifiable if you use cipher.NewGCMWithNonceSize())
-	// A nonce should always be randomly generated for every encryption.
-	nonce := make([]byte, gcm.NonceSize())
+	nonce := make([]byte, 32)
 	_, err = rand.Read(nonce)
 	if err != nil {
 		panic(err)
@@ -134,7 +132,7 @@ func DecryptAES(ciphertext string, secretKey string) string {
 		panic(err)
 	}
 
-	gcm, err := cipher.NewGCM(aes)
+	gcm, err := cipher.NewGCMWithNonceSize(aes, 32)
 	if err != nil {
 		panic(err)
 	}
@@ -142,8 +140,7 @@ func DecryptAES(ciphertext string, secretKey string) string {
 	// Since we know the ciphertext is actually nonce+ciphertext
 	// And len(nonce) == NonceSize(). We can separate the two.
 	ciphertextb := base64Decode(ciphertext)
-	nonceSize := gcm.NonceSize()
-	nonce, ciphertextb := ciphertextb[:nonceSize], ciphertextb[nonceSize:]
+	nonce, ciphertextb := ciphertextb[:32], ciphertextb[32:]
 
 	plaintext, err := gcm.Open(nil, nonce, ciphertextb, nil)
 	if err != nil {

@@ -23,7 +23,7 @@ func GetRequestBody[T interface{}](c *gin.Context) (T, bool) {
 	secret := c.GetString(lib.HEADER_NONCE_TOKEN)
 	decrypted := lib.DecryptAES(str, secret)
 
-	err := json.Unmarshal([]byte(decrypted), data)
+	err := json.Unmarshal([]byte(decrypted), &data)
 
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{
