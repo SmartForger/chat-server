@@ -11,8 +11,9 @@ import (
 
 func AdminReqMiddelware(c *gin.Context) {
 	token := c.GetHeader(lib.HEADER_ADMIN_TOKEN)
+	nonce := c.GetString(lib.HEADER_NONCE_TOKEN)
 
-	if !lib.IsAdminToken(token) {
+	if !lib.IsAdminToken(token, nonce) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, common.ErrorResponse{
 			Message: "unauthorized",
 		})

@@ -24,5 +24,12 @@ func AdminApiRoutes(apiGroup *gin.RouterGroup) {
 			secret := CreateClient(&user)
 			c.JSON(http.StatusCreated, lib.EncryptResponse(gin.H{"secret": secret}, c))
 		})
+
+		clientAdminApiGroup.GET("/:username", func(c *gin.Context) {
+			username := c.Param("username")
+			client := GetClient(username)
+
+			c.JSON(http.StatusOK, lib.EncryptResponse(client, c))
+		})
 	}
 }

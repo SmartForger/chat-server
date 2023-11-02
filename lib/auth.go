@@ -8,10 +8,11 @@ func GetAdminSecret() string {
 	return os.Getenv(ENV_ADMIN_SECRET) + "Zbri3TtBk="
 }
 
-func IsAdminToken(token string) bool {
+func IsAdminToken(token, nonce string) bool {
 	priv := CGet(CK_PRIVATE)
 
-	decryptedToken, err := DecryptRSA(token, priv)
+	decryptedPayload := DecryptAES(token, nonce)
+	decryptedToken, err := DecryptRSA(decryptedPayload, priv)
 	if err != nil {
 		return false
 	}
