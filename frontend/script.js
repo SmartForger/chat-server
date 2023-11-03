@@ -10,6 +10,7 @@ async function init() {
     const isLoggedIn = await lib.login();
     if (isLoggedIn) {
         form.remove();
+        initSocket();
     } else {
         form.addEventListener('submit', login);
     }
@@ -28,36 +29,29 @@ async function login(ev) {
     if (isLoggedIn) {
         const form = document.getElementById('loginform');
         form.remove();
+        initSocket();
     }
 }
 
-function addMessage(msg) {
-    const li = document.createElement('li');
-    li.innerText = msg;
-    document.getElementById('messages').appendChild(li);
-}
-
 function initSocket() {
-    var socket = io('');
-    var s2 = io("/chat");
+    const socket = io('');
 
-    socket.on('reply', function(msg){
-        addMessage(msg);
+    socket.on('joined', function(msg){
+        console.log('Joined room', msg);
     });
 
-    const form1 = document.getElementById('inputform');
-    const msgEl = document.getElementById('m');
+    socket.on('connect', async () => {
+        const client = lib.getClient();
+        const msg = await lib.getSocketMessage({ Username: client.Username });
+        socket.emit('join', msg);
+    });
 
-    form1.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-
-        s2.emit('msg', msgEl.value, function(data){
-            addMessage('ACK CALLBACK: ' + data);
-        });
-
-        socket.emit('notice', msgEl.value);
-
-        msgEl.value = '';
+    socket.on('custom_error', (msg) => {
+        console.error('socket error', msg);
+        if (msg === 'join_error') {
+            socket.close();
+            window.location.reload();
+        }
     });
 }
 

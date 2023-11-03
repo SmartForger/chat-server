@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"fullstackdevs14/chat-server/server/common"
 
 	socketio "github.com/googollee/go-socket.io"
 )
@@ -13,21 +14,17 @@ func SocketHandlers(server *socketio.Server) {
 		return nil
 	})
 
-	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
-		fmt.Println("notice:", msg)
-		s.Emit("reply", "have "+msg)
-	})
+	server.OnEvent("/", "join", func(s socketio.Conn, msg string) error {
+		data, ok := common.GetSocketMessage[common.User](msg)
 
-	server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
-		s.SetContext(msg)
-		return "recv " + msg
-	})
+		if ok {
+			s.Join(data.Username)
+			server.BroadcastToRoom("/", data.Username, "joined", data.Username)
+		} else {
+			s.Emit("custom_error", "join_error")
+		}
 
-	server.OnEvent("/", "bye", func(s socketio.Conn) string {
-		last := s.Context().(string)
-		s.Emit("bye", last)
-		s.Close()
-		return last
+		return nil
 	})
 
 	server.OnError("/", func(s socketio.Conn, e error) {

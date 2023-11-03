@@ -25,6 +25,11 @@ func Setup() {
 	lib.CSet(lib.CK_PRIVATE, priv)
 	lib.CSet(lib.CK_ADMIN_SECRET, lib.GetAdminSecret())
 
+	client.CreateClient(&common.User{
+		Username: "john",
+		Password: "test",
+	})
+
 	r := gin.Default()
 
 	server := socketio.NewServer(nil)

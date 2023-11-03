@@ -13,7 +13,6 @@ func ClientApiRoutes(apiGroup *gin.RouterGroup) {
 	{
 		clientApiGroup.POST("/login", func(c *gin.Context) {
 			user, ok := common.GetRequestBody[common.User](c)
-
 			if !ok {
 				c.AbortWithStatusJSON(http.StatusBadRequest, common.ErrorResponse{
 					Message: "invalid data",

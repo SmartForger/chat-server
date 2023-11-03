@@ -129,12 +129,12 @@ func EncryptAES(plaintext string, secretKey string) string {
 func DecryptAES(ciphertext string, secretKey string) string {
 	aes, err := aes.NewCipher(base64Decode(secretKey))
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	gcm, err := cipher.NewGCMWithNonceSize(aes, 32)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	// Since we know the ciphertext is actually nonce+ciphertext
@@ -144,7 +144,7 @@ func DecryptAES(ciphertext string, secretKey string) string {
 
 	plaintext, err := gcm.Open(nil, nonce, ciphertextb, nil)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	return string(plaintext)

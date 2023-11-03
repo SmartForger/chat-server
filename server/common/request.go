@@ -30,3 +30,31 @@ func GetRequestBody[T interface{}](c *gin.Context) (T, bool) {
 
 	return data, true
 }
+
+func GetSocketMessage[T interface{}](msg string) (*T, bool) {
+	var data T
+	var payload SocketMessage
+
+	err := json.Unmarshal([]byte(msg), &payload)
+	if err != nil {
+		return nil, false
+	}
+
+	priv := lib.CGet(lib.CK_PRIVATE)
+	secret, err1 := lib.DecryptRSA(payload.S, priv)
+	if err1 != nil {
+		return nil, false
+	}
+
+	decrypted := lib.DecryptAES(payload.T, secret)
+	if decrypted == "" {
+		return nil, false
+	}
+
+	err2 := json.Unmarshal([]byte(decrypted), &data)
+	if err2 != nil {
+		return nil, false
+	}
+
+	return &data, true
+}

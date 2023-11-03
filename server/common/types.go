@@ -14,3 +14,8 @@ type Client struct {
 type ErrorResponse struct {
 	Message interface{} `json:"message"`
 }
+
+type SocketMessage struct {
+	S string
+	T string
+}

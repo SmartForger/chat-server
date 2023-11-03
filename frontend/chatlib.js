@@ -1,7 +1,7 @@
 const ChatLib = ({ server, adminToken }) => {
-  const STORAGE_KEY_CLIENT = 'client';
-  const STORAGE_KEY_SECRET = 'secret';
-  const STORAGE_KEY_PUBLICKEY = 'publickey';
+  const STORAGE_KEY_CLIENT = "client";
+  const STORAGE_KEY_SECRET = "secret";
+  const STORAGE_KEY_PUBLICKEY = "publickey";
 
   let publicKey = "";
   let client = {};
@@ -75,15 +75,16 @@ const ChatLib = ({ server, adminToken }) => {
     }
 
     try {
-      const publicKey = await getPublicKey();
-      const { nonce, encrypted } = generateNonce(publicKey);
-      const encryptedData = encryptPayload(JSON.stringify(data), nonce);
+      const {
+        payload: { S: encryptedNonce, T: encryptedData },
+        nonce,
+      } = await getEncryptedPayload(data);
 
       const resp = await fetch(`${server}/client/login`, {
         method: "POST",
         body: encryptedData,
         headers: {
-          sync_nonce: encrypted,
+          sync_nonce: encryptedNonce,
         },
       });
 
@@ -122,8 +123,31 @@ const ChatLib = ({ server, adminToken }) => {
     client = JSON.parse(decryptPayload(encryptedClient, atob(secret)));
   }
 
+  async function getEncryptedPayload(data) {
+    const publicKey = await getPublicKey();
+    const { nonce, encrypted } = generateNonce(publicKey);
+    const encryptedData = encryptPayload(JSON.stringify(data), nonce);
+
+    return { payload: { S: encrypted, T: encryptedData }, nonce };
+  }
+
+  async function getSocketMessage(data) {
+    try {
+      const { payload } = await getEncryptedPayload(data);
+      return JSON.stringify(payload);
+    } catch {
+      return "";
+    }
+  }
+
+  function getClient() {
+    return client;
+  }
+
   return {
     login,
     loadLocalData,
+    getClient,
+    getSocketMessage,
   };
 };
