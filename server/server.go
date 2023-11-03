@@ -65,7 +65,7 @@ func Setup() {
 		client.ClientApiRoutes(protectedRoutes)
 	}
 
-	r.StaticFS("/public", http.Dir("./server/frontend"))
+	r.StaticFS("/public", http.Dir("./frontend"))
 
 	if err := r.Run(); err != nil {
 		log.Fatal("failed run app: ", err)

@@ -1,5 +1,34 @@
+const lib = ChatLib({
+    server: '',
+});
+
 async function init() {
-    initSocket();
+    const form = document.getElementById('loginform');
+
+    await lib.loadLocalData();
+
+    const isLoggedIn = await lib.login();
+    if (isLoggedIn) {
+        form.remove();
+    } else {
+        form.addEventListener('submit', login);
+    }
+}
+
+async function login(ev) {
+    if (ev) {
+        ev.preventDefault();
+    }
+
+    const isLoggedIn = await lib.login({
+        Username: document.getElementById('username').value,
+        Password: document.getElementById('password').value,
+    });
+
+    if (isLoggedIn) {
+        const form = document.getElementById('loginform');
+        form.remove();
+    }
 }
 
 function addMessage(msg) {
