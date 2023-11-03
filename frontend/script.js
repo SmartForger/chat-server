@@ -3,34 +3,55 @@ const lib = ChatLib({
 });
 
 async function init() {
-    const form = document.getElementById('loginform');
-
     await lib.loadLocalData();
 
     const isLoggedIn = await lib.login();
     if (isLoggedIn) {
-        form.remove();
-        initSocket();
+        initChat();
     } else {
-        form.addEventListener('submit', login);
+        showLoginScreen();
     }
 }
 
-async function login(ev) {
-    if (ev) {
-        ev.preventDefault();
-    }
+function showLoginScreen() {
+    const appContainer = document.getElementById('app');
+    appContainer.innerHTML = '';
 
-    const isLoggedIn = await lib.login({
-        Username: document.getElementById('username').value,
-        Password: document.getElementById('password').value,
+    const formEl = document.createElement('form');
+    formEl.id = 'loginform';
+    formEl.innerHTML = `
+<div>
+    <label for="username">Username</label>
+    <input id="username" class="input" placeholder="Enter Username">
+</div>
+<div>
+    <label for="password">Password</label>
+    <input id="password" class="input" type="password" placeholder="Enter Password">
+</div>
+<input class="primary-btn" type="submit" value="Log In">
+`;
+
+    formEl.addEventListener('submit', async (ev) => {
+        if (ev) {
+            ev.preventDefault();
+        }
+    
+        const isLoggedIn = await lib.login({
+            Username: document.getElementById('username').value,
+            Password: document.getElementById('password').value,
+        });
+    
+        if (isLoggedIn) {
+            initChat();
+        }
     });
 
-    if (isLoggedIn) {
-        const form = document.getElementById('loginform');
-        form.remove();
-        initSocket();
-    }
+    appContainer.appendChild(formEl);
+}
+
+function initChat() {
+    showChatScreen();
+    initSocket();
 }
 
 function initSocket() {
@@ -53,6 +74,51 @@ function initSocket() {
             window.location.reload();
         }
     });
+}
+
+function showChatScreen() {
+    const appContainer = document.getElementById('app');
+    appContainer.innerHTML = '';
+
+    const messages = document.createElement('div');
+    messages.id = 'messages';
+    appContainer.appendChild(messages);
+
+    const toolbar = document.createElement('div');
+    toolbar.id = 'toolbar';
+    toolbar.innerHTML = `
+        <textarea id="input" class="input"></textarea>
+        <button id="send" class="primary-btn">Send</button>
+    `;
+
+    appContainer.appendChild(toolbar);
+}
+
+function addSystemMessage(msg) {
+    const container = document.getElementById('messages');
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'message system';
+    msgEl.innerText = msg;
+
+    container.appendChild(msgEl);
+}
+
+function addMessage(msg) {
+    const container = document.getElementById('messages');
+
+    const now = new Date();
+    const h = now.getHours();
+    const timeStr = `${h % 12}:${now.getMinutes()} ${h >= 12 ? 'pm' : 'am'}`;
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'message';
+    msgEl.innerHTML = `
+    <div class="time">${timeStr}</div>
+    <div class="text">${msg}</div>
+    `;
+
+    container.appendChild(msgEl);
 }
 
 init();
