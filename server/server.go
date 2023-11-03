@@ -1,6 +1,7 @@
 package server
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
@@ -10,6 +11,8 @@ import (
 	"fullstackdevs14/chat-server/server/admin"
 	"fullstackdevs14/chat-server/server/client"
 	"fullstackdevs14/chat-server/server/common"
+
+	socketio "github.com/googollee/go-socket.io"
 )
 
 func Setup() {
@@ -24,10 +27,24 @@ func Setup() {
 
 	r := gin.Default()
 
+	server := socketio.NewServer(nil)
+
+	SocketHandlers(server)
+
+	go func() {
+		if err := server.Serve(); err != nil {
+			log.Fatalf("socketio listen error: %s\n", err)
+		}
+	}()
+	defer server.Close()
+
 	config := cors.DefaultConfig()
 	config.AllowAllOrigins = true
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "sync_nonce", "authorization"}
 	r.Use(cors.New(config))
+
+	r.GET("/socket.io/*any", gin.WrapH(server))
+	r.POST("/socket.io/*any", gin.WrapH(server))
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "Hello World")
@@ -48,5 +65,9 @@ func Setup() {
 		client.ClientApiRoutes(protectedRoutes)
 	}
 
-	r.Run()
+	r.StaticFS("/public", http.Dir("./server/frontend"))
+
+	if err := r.Run(); err != nil {
+		log.Fatal("failed run app: ", err)
+	}
 }
