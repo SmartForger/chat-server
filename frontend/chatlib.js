@@ -1,4 +1,4 @@
-const ChatLib = ({ server, adminToken }) => {
+const ChatLib = ({ server }) => {
   const STORAGE_KEY_CLIENT = "client";
   const STORAGE_KEY_SECRET = "secret";
   const STORAGE_KEY_PUBLICKEY = "publickey";
