@@ -26,43 +26,10 @@ const ChatLib = ({ server }) => {
   function generateNonce(publicKey) {
     const nonce = forge.random.getBytesSync(32);
 
-    const rsapub = forge.pki.publicKeyFromPem(publicKey);
-    const encryptedText = rsapub.encrypt(
-      forge.util.encodeUtf8(btoa(nonce)),
-      "RSA-OAEP",
-      {
-        md: forge.md.sha256.create(),
-      }
-    );
-
     return {
       nonce,
-      encrypted: btoa(encryptedText),
+      encrypted: rsaEncrypt(btoa(nonce), publicKey),
     };
-  }
-
-  function encryptPayload(data, key) {
-    const iv = forge.random.getBytesSync(32);
-    const cipher = forge.cipher.createCipher("AES-GCM", key);
-    cipher.start({ iv: iv });
-    cipher.update(forge.util.createBuffer(data));
-    cipher.finish();
-
-    return btoa(iv + cipher.output.data + cipher.mode.tag.data);
-  }
-
-  function decryptPayload(data, key) {
-    const encrypted = atob(data.slice(1, -1));
-
-    const iv = encrypted.slice(0, 32);
-    const tag = encrypted.slice(-16);
-    const ciphertext = encrypted.slice(32, -16);
-    const decipher = forge.cipher.createDecipher("AES-GCM", key);
-    decipher.start({ iv: iv, tagLength: 128, tag });
-    decipher.update(forge.util.createBuffer(ciphertext));
-    decipher.finish();
-
-    return decipher.output.data;
   }
 
   async function login(data) {
@@ -96,9 +63,10 @@ const ChatLib = ({ server }) => {
         };
       }
 
-      client = JSON.parse(decryptPayload(responseData, nonce));
+      const response = responseData.slice(1, -1);
+      client = JSON.parse(aesDecrypt(response, nonce));
 
-      localStorage.setItem(STORAGE_KEY_CLIENT, responseData);
+      localStorage.setItem(STORAGE_KEY_CLIENT, response);
       localStorage.setItem(STORAGE_KEY_SECRET, btoa(nonce));
       localStorage.setItem(STORAGE_KEY_PUBLICKEY, publicKey);
 
@@ -120,13 +88,13 @@ const ChatLib = ({ server }) => {
 
     const encryptedClient = localStorage.getItem(STORAGE_KEY_CLIENT);
     const secret = localStorage.getItem(STORAGE_KEY_SECRET);
-    client = JSON.parse(decryptPayload(encryptedClient, atob(secret)));
+    client = JSON.parse(aesDecrypt(encryptedClient, atob(secret)));
   }
 
   async function getEncryptedPayload(data) {
     const publicKey = await getPublicKey();
     const { nonce, encrypted } = generateNonce(publicKey);
-    const encryptedData = encryptPayload(JSON.stringify(data), nonce);
+    const encryptedData = aesEncrypt(JSON.stringify(data), nonce);
 
     return { payload: { S: encrypted, T: encryptedData }, nonce };
   }

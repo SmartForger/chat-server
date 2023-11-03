@@ -58,3 +58,19 @@ func GetSocketMessage[T interface{}](msg string) (*T, bool) {
 
 	return &data, true
 }
+
+func GetEncryptedData(data []byte, secret string) (string, bool) {
+	encrypted := lib.EncryptAESByte(data, secret)
+	if encrypted == "" {
+		return "", false
+	}
+
+	json, err2 := json.Marshal(SocketMessage{
+		T: encrypted,
+	})
+	if err2 != nil {
+		return "", false
+	}
+
+	return string(json), true
+}

@@ -54,12 +54,22 @@ function initChat() {
     initSocket();
 }
 
+var socket = null;
+
 function initSocket() {
-    const socket = io('');
+    socket = io('');
 
     socket.on('joined', function(msg){
-        console.log('Joined room', msg);
+        addSystemMessage(`Joined room: "${msg}"`);
     });
+
+    socket.on('receive', function(msg) {
+        const payload = JSON.parse(msg);
+        const client = lib.getClient();
+        const decrypted = aesDecrypt(payload.T, atob(client.Secret));
+        const data = JSON.parse(decrypted)
+        addMessage(data.Message);
+    })
 
     socket.on('connect', async () => {
         const client = lib.getClient();
@@ -71,6 +81,7 @@ function initSocket() {
         console.error('socket error', msg);
         if (msg === 'join_error') {
             socket.close();
+            socket = null;
             window.location.reload();
         }
     });
@@ -86,10 +97,34 @@ function showChatScreen() {
 
     const toolbar = document.createElement('div');
     toolbar.id = 'toolbar';
-    toolbar.innerHTML = `
-        <textarea id="input" class="input"></textarea>
-        <button id="send" class="primary-btn">Send</button>
-    `;
+
+    const inputEl = document.createElement('textarea');
+    inputEl.id = 'input';
+    inputEl.className = 'input';
+    toolbar.appendChild(inputEl);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.id = 'send';
+    sendBtn.className = 'primary-btn';
+    sendBtn.innerText = 'Send';
+    toolbar.appendChild(sendBtn);
+
+    sendBtn.addEventListener('click', async () => {
+        if (!inputEl.value) {
+            return
+        }
+
+        const client = lib.getClient();
+        const payload = await lib.getSocketMessage({ Message: inputEl.value, Room: client.Username });
+        if (!payload) {
+            return;
+        }
+
+        if (socket) {
+            socket.emit('broadcast', payload);
+            inputEl.value = '';
+        }
+    });
 
     appContainer.appendChild(toolbar);
 }

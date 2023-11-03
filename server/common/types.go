@@ -19,3 +19,8 @@ type SocketMessage struct {
 	S string
 	T string
 }
+
+type ChatMessage struct {
+	Room    string
+	Message string
+}
