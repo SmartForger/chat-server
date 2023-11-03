@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fullstackdevs14/chat-server/lib"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,9 +25,6 @@ func GetRequestBody[T interface{}](c *gin.Context) (T, bool) {
 	err := json.Unmarshal([]byte(decrypted), &data)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, ErrorResponse{
-			Message: "invalid data",
-		})
 		return data, false
 	}
 
